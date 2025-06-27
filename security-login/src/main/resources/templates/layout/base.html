@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${pageTitle} + ' | Security Login'">Security Login</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+
+        --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --shadow-heavy: 0 15px 35px rgba(0, 0, 0, 0.2);
+
+        --border-radius: 12px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        line-height: 1.6;
+        color: #2c3e50;
+        background: var(--primary-gradient);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    /* 배경 애니메이션 */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* 플로팅 요소들 */
+    .floating-elements {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .floating-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .floating-circle:nth-child(1) {
+        width: 80px;
+        height: 80px;
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .floating-circle:nth-child(2) {
+        width: 60px;
+        height: 60px;
+        top: 60%;
+        right: 15%;
+        animation-delay: 2s;
+    }
+
+    .floating-circle:nth-child(3) {
+        width: 40px;
+        height: 40px;
+        bottom: 20%;
+        left: 20%;
+        animation-delay: 4s;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    /* 메인 컨테이너 */
+    .main-container {
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    /* 카드 스타일 */
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-heavy);
+        padding: 40px;
+        width: 100%;
+        max-width: 450px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+    }
+
+    .auth-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 제목 스타일 */
+    .auth-title {
+        text-align: center;
+        margin-bottom: 30px;
+        font-weight: 700;
+        font-size: 2rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .auth-subtitle {
+        text-align: center;
+        color: #6c757d;
+        margin-bottom: 30px;
+        font-weight: 400;
+    }
+
+    /* 폼 스타일 */
+    .form-floating {
+        margin-bottom: 20px;
+    }
+
+    .form-floating > .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: var(--border-radius);
+        padding: 1rem 0.75rem;
+        font-size: 1rem;
+        transition: var(--transition);
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        background: rgba(255, 255, 255, 1);
+    }
+
+    .form-floating > label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    /* 버튼 스타일 */
+    .btn-gradient {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        font-size: 1rem;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-gradient::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: var(--transition);
+    }
+
+    .btn-gradient:hover::before {
+        left: 100%;
+    }
+
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+    }
+
+    /* 소셜 로그인 버튼 */
+    .social-buttons {
+        margin: 30px 0;
+    }
+
+    .btn-social {
+        width: 100%;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        border: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: var(--transition);
+        margin-bottom: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-google {
+        background: #fff;
+        color: #333;
+        border: 2px solid #ddd;
+    }
+
+    .btn-google:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-light);
+    }
+
+    .btn-kakao {
+        background: #FEE500;
+        color: #000;
+    }
+
+    .btn-kakao:hover {
+        background: #f5d900;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-light);
+    }
+
+    .btn-naver {
+        background: #03C75A;
+        color: white;
+    }
+
+    .btn-naver:hover {
+        background: #02b351;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-light);
+    }
+
+    /* 구분선 */
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: 30px 0;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #dee2e6;
+    }
+
+    .divider span {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 0 20px;
+    }
+
+    /* 알림 메시지 */
+    .alert {
+        border-radius: var(--border-radius);
+        border: none;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    .alert-success {
+        background: rgba(40, 167, 69, 0.1);
+        color: #155724;
+        border-left: 4px solid #28a745;
+    }
+
+    .alert-danger {
+        background: rgba(220, 53, 69, 0.1);
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+    }
+
+    /* 링크 스타일 */
+    .auth-links {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    .auth-links a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .auth-links a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+
+    /* 로딩 스피너 */
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .auth-card {
+            padding: 30px 20px;
+            margin: 10px;
+        }
+
+        .auth-title {
+            font-size: 1.75rem;
+        }
+
+        .floating-circle {
+            display: none;
+        }
+    }
+
+    /* 커스텀 체크박스 */
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .form-check-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+  </style>
+
+  <!-- 페이지별 추가 CSS -->
+  <th:block layout:fragment="styles"></th:block>
+</head>
+<body>
+<!-- 플로팅 요소들 -->
+<div class="floating-elements">
+  <div class="floating-circle"></div>
+  <div class="floating-circle"></div>
+  <div class="floating-circle"></div>
+</div>
+
+<!-- 메인 컨텐츠 -->
+<main layout:fragment="content"></main>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 공통 JavaScript -->
+<script>
+  // 토스트 알림 함수
+  function showToast(message, type = 'info') {
+      const toastHtml = `
+          <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="d-flex">
+                  <div class="toast-body">
+                      ${message}
+                  </div>
+                  <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+              </div>
+          </div>
+      `;
+
+      let toastContainer = document.querySelector('.toast-container');
+      if (!toastContainer) {
+          toastContainer = document.createElement('div');
+          toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+          document.body.appendChild(toastContainer);
+      }
+
+      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+      const toast = new bootstrap.Toast(toastContainer.lastElementChild);
+      toast.show();
+
+      // 토스트가 사라진 후 DOM에서 제거
+      toastContainer.lastElementChild.addEventListener('hidden.bs.toast', function() {
+          this.remove();
+      });
+  }
+
+  // 폼 제출 시 로딩 상태 표시
+  function showLoading(button) {
+      const originalText = button.innerHTML;
+      button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>처리중...';
+      button.disabled = true;
+
+      return function() {
+          button.innerHTML = originalText;
+          button.disabled = false;
+      };
+  }
+
+  // 페이지 로드 시 애니메이션
+  document.addEventListener('DOMContentLoaded', function() {
+      const authCard = document.querySelector('.auth-card');
+      if (authCard) {
+          authCard.style.opacity = '0';
+          authCard.style.transform = 'translateY(30px)';
+
+          setTimeout(() => {
+              authCard.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+              authCard.style.opacity = '1';
+              authCard.style.transform = 'translateY(0)';
+          }, 100);
+      }
+  });
+</script>
+
+<!-- 페이지별 추가 JS -->
+<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

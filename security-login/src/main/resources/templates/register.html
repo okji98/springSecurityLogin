@@ -1,10 +1,753 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>회원가입</title>
 </head>
-<body>
 
-</body>
+<th:block layout:fragment="styles">
+    <style>
+        .register-card {
+            max-width: 500px;
+        }
+
+        .strength-meter {
+            height: 4px;
+            border-radius: 2px;
+            background: #e9ecef;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-weak { background: #dc3545; width: 25%; }
+        .strength-fair { background: #fd7e14; width: 50%; }
+        .strength-good { background: #ffc107; width: 75%; }
+        .strength-strong { background: #28a745; width: 100%; }
+
+        .strength-text {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .form-check-custom {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+
+        .terms-links {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .terms-links:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .phone-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .phone-prefix {
+            flex: 0 0 80px;
+        }
+
+        .phone-number {
+            flex: 1;
+        }
+
+        .field-validation {
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+
+        .field-validation.valid {
+            color: #28a745;
+        }
+
+        .field-validation.invalid {
+            color: #dc3545;
+        }
+
+        .field-validation i {
+            margin-right: 5px;
+            font-size: 0.75rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin: 0 10px;
+            transition: var(--transition);
+        }
+
+        .step.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .step-line {
+            width: 40px;
+            height: 2px;
+            background: #e9ecef;
+            margin-top: 14px;
+            transition: var(--transition);
+        }
+
+        .step-line.completed {
+            background: #28a745;
+        }
+
+        .email-check-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .email-check-btn:hover {
+            opacity: 0.9;
+        }
+
+        .email-check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</th:block>
+
+<main layout:fragment="content">
+    <div class="main-container">
+        <div class="row w-100 justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="auth-card register-card mx-auto">
+                    <!-- 단계 표시기 -->
+                    <div class="step-indicator">
+                        <div class="step active" id="step1">1</div>
+                        <div class="step-line" id="line1"></div>
+                        <div class="step" id="step2">2</div>
+                        <div class="step-line" id="line2"></div>
+                        <div class="step" id="step3">3</div>
+                    </div>
+
+                    <div class="text-center mb-4">
+                        <h2 class="auth-title">
+                            <i class="fas fa-user-plus me-2"></i>
+                            회원가입
+                        </h2>
+                        <p class="auth-subtitle">새 계정을 만들어 서비스를 이용하세요</p>
+                    </div>
+
+                    <!-- 알림 메시지 -->
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <!-- 소셜 회원가입 -->
+                    <div class="social-buttons">
+                        <h6 class="social-login-title">소셜 계정으로 간편 가입</h6>
+
+                        <a href="/oauth2/authorization/google" class="btn btn-social btn-google">
+                            <i class="fab fa-google"></i>
+                            Google로 가입하기
+                        </a>
+
+                        <a href="/oauth2/authorization/kakao" class="btn btn-social btn-kakao">
+                            <i class="fas fa-comment"></i>
+                            카카오로 가입하기
+                        </a>
+
+                        <a href="/oauth2/authorization/naver" class="btn btn-social btn-naver">
+                            <strong>N</strong>
+                            네이버로 가입하기
+                        </a>
+                    </div>
+
+                    <!-- 구분선 -->
+                    <div class="divider">
+                        <span>또는 이메일로 가입</span>
+                    </div>
+
+                    <!-- 회원가입 폼 -->
+                    <form id="registerForm" th:action="@{/api/auth/register}" method="post">
+                        <!-- 이메일 -->
+                        <div class="form-floating">
+                            <input type="email"
+                                   class="form-control"
+                                   id="email"
+                                   name="email"
+                                   placeholder="이메일을 입력하세요"
+                                   required>
+                            <label for="email">
+                                <i class="fas fa-envelope me-2"></i>이메일
+                            </label>
+                            <button type="button" class="email-check-btn" onclick="checkEmailAvailability()">
+                                중복확인
+                            </button>
+                            <div class="field-validation" id="emailValidation"></div>
+                        </div>
+
+                        <!-- 비밀번호 -->
+                        <div class="form-floating">
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   placeholder="비밀번호를 입력하세요"
+                                   required>
+                            <label for="password">
+                                <i class="fas fa-lock me-2"></i>비밀번호
+                            </label>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                            </button>
+                            <div class="strength-meter">
+                                <div class="strength-bar" id="strengthBar"></div>
+                            </div>
+                            <div class="strength-text" id="strengthText"></div>
+                        </div>
+
+                        <!-- 비밀번호 확인 -->
+                        <div class="form-floating">
+                            <input type="password"
+                                   class="form-control"
+                                   id="confirmPassword"
+                                   name="confirmPassword"
+                                   placeholder="비밀번호를 다시 입력하세요"
+                                   required>
+                            <label for="confirmPassword">
+                                <i class="fas fa-check-double me-2"></i>비밀번호 확인
+                            </label>
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye" id="confirmPasswordToggleIcon"></i>
+                            </button>
+                            <div class="field-validation" id="confirmPasswordValidation"></div>
+                        </div>
+
+                        <!-- 이름 -->
+                        <div class="form-floating">
+                            <input type="text"
+                                   class="form-control"
+                                   id="name"
+                                   name="name"
+                                   placeholder="이름을 입력하세요"
+                                   required>
+                            <label for="name">
+                                <i class="fas fa-user me-2"></i>이름
+                            </label>
+                            <div class="field-validation" id="nameValidation"></div>
+                        </div>
+
+                        <!-- 전화번호 -->
+                        <div class="phone-input-group">
+                            <div class="form-floating phone-prefix">
+                                <select class="form-select" id="phonePrefix" name="phonePrefix">
+                                    <option value="010">010</option>
+                                    <option value="011">011</option>
+                                    <option value="016">016</option>
+                                    <option value="017">017</option>
+                                    <option value="018">018</option>
+                                    <option value="019">019</option>
+                                </select>
+                                <label for="phonePrefix">통신사</label>
+                            </div>
+                            <div class="form-floating phone-number">
+                                <input type="tel"
+                                       class="form-control"
+                                       id="phoneNumber"
+                                       name="phoneNumber"
+                                       placeholder="전화번호를 입력하세요"
+                                       maxlength="8">
+                                <label for="phoneNumber">
+                                    <i class="fas fa-phone me-2"></i>전화번호 (선택)
+                                </label>
+                                <div class="field-validation" id="phoneValidation"></div>
+                            </div>
+                        </div>
+
+                        <!-- 약관 동의 -->
+                        <div class="form-check-custom">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="agreeAll">
+                                <label class="form-check-label" for="agreeAll">
+                                    <strong>전체 동의</strong>
+                                </label>
+                            </div>
+                            <hr class="my-2">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input required-check" type="checkbox" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    <span class="text-danger me-1">*</span>
+                                    <a href="#" class="terms-links" onclick="showTermsModal('terms')">이용약관</a>에 동의합니다
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input required-check" type="checkbox" id="agreePrivacy" required>
+                                <label class="form-check-label" for="agreePrivacy">
+                                    <span class="text-danger me-1">*</span>
+                                    <a href="#" class="terms-links" onclick="showTermsModal('privacy')">개인정보처리방침</a>에 동의합니다
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeMarketing">
+                                <label class="form-check-label" for="agreeMarketing">
+                                    마케팅 정보 수신에 동의합니다 (선택)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 가입 버튼 -->
+                        <button type="submit" class="btn btn-gradient w-100" id="registerBtn" disabled>
+                            <i class="fas fa-user-plus me-2"></i>
+                            회원가입
+                        </button>
+                    </form>
+
+                    <!-- 로그인 안내 -->
+                    <div class="register-prompt">
+                        <p>이미 계정이 있으신가요?
+                            <a th:href="@{/login}">로그인</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 약관 모달 -->
+    <div class="modal fade" id="termsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="termsModalBody" style="max-height: 400px; overflow-y: auto;">
+                    <!-- 약관 내용이 여기에 로드됩니다 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-gradient" onclick="agreeToTerms()">동의</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block layout:fragment="scripts">
+    <script>
+        let emailChecked = false;
+        let currentTermsType = '';
+
+        // 비밀번호 표시/숨김 토글
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(inputId + 'ToggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // 이메일 중복 확인
+        async function checkEmailAvailability() {
+            const emailInput = document.getElementById('email');
+            const email = emailInput.value.trim();
+            const validation = document.getElementById('emailValidation');
+
+            if (!email || !validateEmailFormat(email)) {
+                validation.innerHTML = '<i class="fas fa-times"></i> 올바른 이메일을 입력해주세요.';
+                validation.className = 'field-validation invalid';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    validation.innerHTML = '<i class="fas fa-check"></i> 사용 가능한 이메일입니다.';
+                    validation.className = 'field-validation valid';
+                    emailChecked = true;
+                    emailInput.readOnly = true;
+                    updateSteps();
+                } else {
+                    validation.innerHTML = '<i class="fas fa-times"></i> 이미 사용 중인 이메일입니다.';
+                    validation.className = 'field-validation invalid';
+                    emailChecked = false;
+                }
+
+            } catch (error) {
+                validation.innerHTML = '<i class="fas fa-times"></i> 확인 중 오류가 발생했습니다.';
+                validation.className = 'field-validation invalid';
+                emailChecked = false;
+            }
+        }
+
+        // 비밀번호 강도 검사
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            let feedback = [];
+
+            if (password.length >= 8) strength++;
+            else feedback.push('8자 이상');
+
+            if (/[a-z]/.test(password)) strength++;
+            else feedback.push('소문자');
+
+            if (/[A-Z]/.test(password)) strength++;
+            else feedback.push('대문자');
+
+            if (/[0-9]/.test(password)) strength++;
+            else feedback.push('숫자');
+
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            else feedback.push('특수문자');
+
+            return { strength, feedback };
+        }
+
+        // 단계 업데이트
+        function updateSteps() {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+            const line1 = document.getElementById('line1');
+            const line2 = document.getElementById('line2');
+
+            // 1단계: 이메일 확인
+            if (emailChecked) {
+                step1.classList.add('completed');
+                step1.classList.remove('active');
+                line1.classList.add('completed');
+                step2.classList.add('active');
+            }
+
+            // 2단계: 정보 입력
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const name = document.getElementById('name').value;
+
+            if (password && confirmPassword && name && password === confirmPassword) {
+                step2.classList.add('completed');
+                step2.classList.remove('active');
+                line2.classList.add('completed');
+                step3.classList.add('active');
+            }
+        }
+
+        // 폼 검증 및 가입 버튼 활성화
+        function validateForm() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const name = document.getElementById('name').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            const agreePrivacy = document.getElementById('agreePrivacy').checked;
+
+            const isValid = emailChecked &&
+                           password &&
+                           confirmPassword &&
+                           password === confirmPassword &&
+                           name.length >= 2 &&
+                           agreeTerms &&
+                           agreePrivacy;
+
+            document.getElementById('registerBtn').disabled = !isValid;
+            updateSteps();
+        }
+
+        // 이메일 형식 검증
+        function validateEmailFormat(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // 약관 모달 표시
+        function showTermsModal(type) {
+            currentTermsType = type;
+            const modal = document.getElementById('termsModal');
+            const title = document.getElementById('termsModalTitle');
+            const body = document.getElementById('termsModalBody');
+
+            if (type === 'terms') {
+                title.textContent = '이용약관';
+                body.innerHTML = `
+                    <h6>제1조 (목적)</h6>
+                    <p>이 약관은 Security Login 서비스의 이용조건 및 절차에 관한 사항을 규정함을 목적으로 합니다.</p>
+
+                    <h6>제2조 (정의)</h6>
+                    <p>1. "서비스"란 회사가 제공하는 모든 서비스를 의미합니다.</p>
+                    <p>2. "회원"이란 서비스에 접속하여 이 약관에 따라 서비스를 이용하는 고객을 말합니다.</p>
+
+                    <h6>제3조 (약관의 효력 및 변경)</h6>
+                    <p>이 약관은 서비스 화면에 게시하거나 기타의 방법으로 회원에게 공지함으로써 효력을 발생합니다.</p>
+                `;
+            } else if (type === 'privacy') {
+                title.textContent = '개인정보처리방침';
+                body.innerHTML = `
+                    <h6>1. 개인정보의 처리목적</h6>
+                    <p>회사는 다음의 목적을 위하여 개인정보를 처리합니다.</p>
+                    <ul>
+                        <li>서비스 제공 및 계약의 이행</li>
+                        <li>회원 관리 및 본인 확인</li>
+                        <li>고객 상담 및 불만 처리</li>
+                    </ul>
+
+                    <h6>2. 개인정보의 처리 및 보유기간</h6>
+                    <p>개인정보는 수집·이용에 관한 동의일로부터 개인정보의 수집·이용목적을 달성할 때까지 처리됩니다.</p>
+
+                    <h6>3. 개인정보의 제3자 제공</h6>
+                    <p>회사는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다.</p>
+                `;
+            }
+
+            new bootstrap.Modal(modal).show();
+        }
+
+        // 약관 동의
+        function agreeToTerms() {
+            if (currentTermsType === 'terms') {
+                document.getElementById('agreeTerms').checked = true;
+            } else if (currentTermsType === 'privacy') {
+                document.getElementById('agreePrivacy').checked = true;
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('termsModal')).hide();
+            validateForm();
+        }
+
+        // 이벤트 리스너 등록
+        document.addEventListener('DOMContentLoaded', function() {
+            // 비밀번호 강도 검사
+            document.getElementById('password').addEventListener('input', function() {
+                const password = this.value;
+                const { strength, feedback } = checkPasswordStrength(password);
+                const strengthBar = document.getElementById('strengthBar');
+                const strengthText = document.getElementById('strengthText');
+
+                // 강도별 클래스 설정
+                strengthBar.className = 'strength-bar';
+                if (strength <= 2) {
+                    strengthBar.classList.add('strength-weak');
+                    strengthText.textContent = `약함 (${feedback.join(', ')} 필요)`;
+                    strengthText.style.color = '#dc3545';
+                } else if (strength === 3) {
+                    strengthBar.classList.add('strength-fair');
+                    strengthText.textContent = '보통';
+                    strengthText.style.color = '#fd7e14';
+                } else if (strength === 4) {
+                    strengthBar.classList.add('strength-good');
+                    strengthText.textContent = '좋음';
+                    strengthText.style.color = '#ffc107';
+                } else {
+                    strengthBar.classList.add('strength-strong');
+                    strengthText.textContent = '매우 강함';
+                    strengthText.style.color = '#28a745';
+                }
+
+                validateForm();
+            });
+
+            // 비밀번호 확인 검사
+            document.getElementById('confirmPassword').addEventListener('input', function() {
+                const password = document.getElementById('password').value;
+                const confirmPassword = this.value;
+                const validation = document.getElementById('confirmPasswordValidation');
+
+                if (confirmPassword) {
+                    if (password === confirmPassword) {
+                        validation.innerHTML = '<i class="fas fa-check"></i> 비밀번호가 일치합니다.';
+                        validation.className = 'field-validation valid';
+                    } else {
+                        validation.innerHTML = '<i class="fas fa-times"></i> 비밀번호가 일치하지 않습니다.';
+                        validation.className = 'field-validation invalid';
+                    }
+                } else {
+                    validation.innerHTML = '';
+                    validation.className = 'field-validation';
+                }
+
+                validateForm();
+            });
+
+            // 이름 검증
+            document.getElementById('name').addEventListener('input', function() {
+                const name = this.value.trim();
+                const validation = document.getElementById('nameValidation');
+
+                if (name.length >= 2) {
+                    validation.innerHTML = '<i class="fas fa-check"></i> 사용 가능한 이름입니다.';
+                    validation.className = 'field-validation valid';
+                } else if (name.length > 0) {
+                    validation.innerHTML = '<i class="fas fa-times"></i> 이름은 2자 이상이어야 합니다.';
+                    validation.className = 'field-validation invalid';
+                } else {
+                    validation.innerHTML = '';
+                    validation.className = 'field-validation';
+                }
+
+                validateForm();
+            });
+
+            // 전화번호 검증
+            document.getElementById('phoneNumber').addEventListener('input', function() {
+                const phoneNumber = this.value.replace(/[^0-9]/g, '');
+                const validation = document.getElementById('phoneValidation');
+
+                this.value = phoneNumber;
+
+                if (phoneNumber.length === 0) {
+                    validation.innerHTML = '';
+                    validation.className = 'field-validation';
+                } else if (phoneNumber.length >= 7 && phoneNumber.length <= 8) {
+                    validation.innerHTML = '<i class="fas fa-check"></i> 올바른 전화번호입니다.';
+                    validation.className = 'field-validation valid';
+                } else {
+                    validation.innerHTML = '<i class="fas fa-times"></i> 7-8자리 숫자를 입력해주세요.';
+                    validation.className = 'field-validation invalid';
+                }
+            });
+
+            // 전체 동의 체크박스
+            document.getElementById('agreeAll').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.form-check-input:not(#agreeAll)');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                validateForm();
+            });
+
+            // 개별 동의 체크박스
+            document.querySelectorAll('.form-check-input:not(#agreeAll)').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allCheckboxes = document.querySelectorAll('.form-check-input:not(#agreeAll)');
+                    const checkedCount = document.querySelectorAll('.form-check-input:not(#agreeAll):checked').length;
+
+                    document.getElementById('agreeAll').checked = checkedCount === allCheckboxes.length;
+                    validateForm();
+                });
+            });
+
+            // 이메일 변경 감지
+            document.getElementById('email').addEventListener('input', function() {
+                emailChecked = false;
+                this.readOnly = false;
+                document.getElementById('emailValidation').innerHTML = '';
+                validateForm();
+            });
+        });
+
+        // 회원가입 폼 제출
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!emailChecked) {
+                showToast('이메일 중복확인을 해주세요.', 'warning');
+                return;
+            }
+
+            const submitBtn = document.getElementById('registerBtn');
+            const hideLoading = showLoading(submitBtn);
+
+            // 폼 데이터 수집
+            const formData = new FormData(this);
+            const phonePrefix = formData.get('phonePrefix');
+            const phoneNumber = formData.get('phoneNumber');
+
+            const registerData = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                confirmPassword: formData.get('confirmPassword'),
+                name: formData.get('name'),
+                phoneNumber: phoneNumber ? `${phonePrefix}-${phoneNumber.substring(0, 4)}-${phoneNumber.substring(4)}` : null
+            };
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registerData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 회원가입 성공
+                    showToast('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.', 'success');
+
+                    // 성공 애니메이션
+                    document.querySelector('.auth-card').style.transform = 'scale(1.02)';
+
+                    setTimeout(() => {
+                        window.location.href = '/login?registered=true';
+                    }, 2000);
+
+                } else {
+                    // 회원가입 실패
+                    showToast(result.message || '회원가입에 실패했습니다.', 'danger');
+                    hideLoading();
+                }
+
+            } catch (error) {
+                console.error('회원가입 오류:', error);
+                showToast('회원가입 중 오류가 발생했습니다.', 'danger');
+                hideLoading();
+            }
+        });
+    </script>
+</th:block>
 </html>

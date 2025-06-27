@@ -1,10 +1,782 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>프로필</title>
 </head>
-<body>
 
-</body>
+<th:block layout:fragment="styles">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .profile-container {
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-light);
+        }
+
+        .profile-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-medium);
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 0 auto 20px;
+            position: relative;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .avatar-upload {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #28a745;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .avatar-upload:hover {
+            background: #218838;
+            transform: scale(1.1);
+        }
+
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .profile-email {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+
+        .profile-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-label i {
+            margin-right: 8px;
+            color: #6c757d;
+            width: 16px;
+        }
+
+        .info-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: var(--transition);
+        }
+
+        .edit-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #5a67d8;
+        }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .provider-local { background: #e3f2fd; color: #1976d2; }
+        .provider-google { background: #fce4ec; color: #c2185b; }
+        .provider-kakao { background: #fff3e0; color: #f57c00; }
+        .provider-naver { background: #e8f5e8; color: #2e7d32; }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-outline-primary {
+            border: 2px solid #667eea;
+            color: #667eea;
+            background: transparent;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-outline-primary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-outline-danger {
+            border: 2px solid #dc3545;
+            color: #dc3545;
+            background: transparent;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .security-item:last-child {
+            border-bottom: none;
+        }
+
+        .security-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .status-good {
+            background: #28a745;
+            color: white;
+        }
+
+        .status-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .status-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                padding: 30px 20px;
+            }
+
+            .profile-name {
+                font-size: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</th:block>
+
+<main layout:fragment="content">
+    <!-- 네비게이션 -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#" th:href="@{/home}">
+                <i class="fas fa-shield-alt me-2"></i>
+                Security Login
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/home}">
+                            <i class="fas fa-home me-1"></i>홈
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/profile}">
+                            <i class="fas fa-user me-1"></i>프로필
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/admin}">
+                            <i class="fas fa-cog me-1"></i>관리자
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="navbar-nav">
+                    <div class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span th:text="${user?.name ?: '사용자'}">사용자</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" th:href="@{/profile}">
+                                <i class="fas fa-user me-2"></i>프로필
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-cog me-2"></i>설정
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>로그아웃
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 프로필 컨테이너 -->
+    <div class="profile-container" style="margin-top: 80px;">
+        <div class="container">
+            <!-- 프로필 헤더 -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <span th:text="${user?.name?.substring(0,1)?.toUpperCase() ?: 'U'}">U</span>
+                    <div class="avatar-upload" onclick="showAvatarUpload()">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+                <h1 class="profile-name" th:text="${user?.name ?: '사용자'}">사용자</h1>
+                <p class="profile-email" th:text="${user?.email}">이메일</p>
+
+                <div class="d-flex justify-content-center gap-3 mb-3">
+                    <span class="provider-badge"
+                          th:class="'provider-' + ${user?.provider?.name()?.toLowerCase()}"
+                          th:text="${user?.provider?.displayName ?: '로컬'}">
+                        로그인 방식
+                    </span>
+                    <span class="status-badge"
+                          th:class="${user?.enabled} ? 'status-active' : 'status-inactive'"
+                          th:text="${user?.enabled} ? '활성' : '비활성'">
+                        상태
+                    </span>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-outline-primary" onclick="showEditProfileModal()">
+                        <i class="fas fa-edit me-2"></i>프로필 수정
+                    </button>
+                    <button class="btn btn-outline-primary"
+                            th:if="${canChangePassword}"
+                            onclick="showChangePasswordModal()">
+                        <i class="fas fa-key me-2"></i>비밀번호 변경
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="showDeactivateModal()">
+                        <i class="fas fa-user-times me-2"></i>계정 비활성화
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- 기본 정보 -->
+                <div class="col-lg-6">
+                    <div class="profile-card">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle"></i>
+                            기본 정보
+                        </h5>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-user"></i>
+                                이름
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="info-value" th:text="${user?.name}">이름</span>
+                                <button class="edit-btn ms-2" onclick="editField('name')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-envelope"></i>
+                                이메일
+                            </div>
+                            <span class="info-value" th:text="${user?.email}">이메일</span>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-phone"></i>
+                                전화번호
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="info-value" th:text="${user?.phoneNumber ?: '미등록'}">전화번호</span>
+                                <button class="edit-btn ms-2" onclick="editField('phone')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-calendar-plus"></i>
+                                가입일
+                            </div>
+                            <span class="info-value" th:text="${user?.createdAt?.toLocalDate()}">가입일</span>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="fas fa-clock"></i>
+                                최근 수정
+                            </div>
+                            <span class="info-value" th:text="${user?.updatedAt?.toLocalDate()}">수정일</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 보안 정보 -->
+                <div class="col-lg-6">
+                    <div class="profile-card">
+                        <h5 class="card-title">
+                            <i class="fas fa-shield-check"></i>
+                            보안 및 개인정보
+                        </h5>
+
+                        <div class="security-item">
+                            <div>
+                                <div class="fw-bold">계정 보안</div>
+                                <small class="text-muted">계정 안전성 상태</small>
+                            </div>
+                            <div class="security-status">
+                                <div class="status-icon status-good">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <span class="text-success fw-bold">안전</span>
+                            </div>
+                        </div>
+
+                        <div class="security-item">
+                            <div>
+                                <div class="fw-bold">비밀번호</div>
+                                <small class="text-muted" th:if="${canChangePassword}">마지막 변경: 최근</small>
+                                <small class="text-muted" th:unless="${canChangePassword}">소셜 로그인 계정</small>
+                            </div>
+                            <div class="security-status">
+                                <div class="status-icon" th:class="${canChangePassword} ? 'status-good' : 'status-warning'">
+                                    <i class="fas" th:class="${canChangePassword} ? 'fa-check' : 'fa-exclamation'"></i>
+                                </div>
+                                <span th:class="${canChangePassword} ? 'text-success' : 'text-warning'"
+                                      th:text="${canChangePassword} ? '안전' : '소셜계정'">상태</span>
+                            </div>
+                        </div>
+
+                        <div class="security-item">
+                            <div>
+                                <div class="fw-bold">로그인 활동</div>
+                                <small class="text-muted">최근 로그인 활동 모니터링</small>
+                            </div>
+                            <div class="security-status">
+                                <div class="status-icon status-good">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <span class="text-success fw-bold">정상</span>
+                            </div>
+                        </div>
+
+                        <div class="security-item">
+                            <div>
+                                <div class="fw-bold">데이터 보호</div>
+                                <small class="text-muted">개인정보 암호화 상태</small>
+                            </div>
+                            <div class="security-status">
+                                <div class="status-icon status-good">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                                <span class="text-success fw-bold">보호됨</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로필 수정 모달 -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>
+                        프로필 수정
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProfileForm">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="editName" th:value="${user?.name}" required>
+                            <label for="editName">이름</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="tel" class="form-control" id="editPhone" th:value="${user?.phoneNumber}">
+                            <label for="editPhone">전화번호 (선택)</label>
+                            <div class="form-text">형식: 010-1234-5678</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" form="editProfileForm" class="btn btn-gradient">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 변경 모달 -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key me-2"></i>
+                        비밀번호 변경
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="currentPassword" required>
+                            <label for="currentPassword">현재 비밀번호</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="newPassword" required>
+                            <label for="newPassword">새 비밀번호</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control" id="confirmNewPassword" required>
+                            <label for="confirmNewPassword">새 비밀번호 확인</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" form="changePasswordForm" class="btn btn-gradient">변경</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 계정 비활성화 모달 -->
+    <div class="modal fade" id="deactivateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        계정 비활성화
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>주의:</strong> 계정을 비활성화하면 서비스 이용이 제한됩니다.
+                    </div>
+                    <p>정말로 계정을 비활성화하시겠습니까?</p>
+                    <ul class="text-muted">
+                        <li>로그인이 불가능해집니다</li>
+                        <li>관리자에게 문의하여 재활성화할 수 있습니다</li>
+                        <li>데이터는 보관됩니다</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-danger" onclick="deactivateAccount()">비활성화</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block layout:fragment="scripts">
+    <script>
+        // 로그아웃 함수
+        async function logout() {
+            if (confirm('정말 로그아웃하시겠습니까?')) {
+                try {
+                    const response = await fetch('/api/auth/logout', { method: 'POST' });
+                    if (response.ok) {
+                        showToast('로그아웃되었습니다.', 'success');
+                        setTimeout(() => window.location.href = '/login', 1000);
+                    }
+                } catch (error) {
+                    window.location.href = '/login';
+                }
+            }
+        }
+
+        // 프로필 수정 모달 표시
+        function showEditProfileModal() {
+            new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+        }
+
+        // 비밀번호 변경 모달 표시
+        function showChangePasswordModal() {
+            new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+        }
+
+        // 계정 비활성화 모달 표시
+        function showDeactivateModal() {
+            new bootstrap.Modal(document.getElementById('deactivateModal')).show();
+        }
+
+        // 아바타 업로드 (임시)
+        function showAvatarUpload() {
+            showToast('아바타 업로드 기능은 준비 중입니다.', 'info');
+        }
+
+        // 필드 편집 (임시)
+        function editField(fieldType) {
+            if (fieldType === 'name' || fieldType === 'phone') {
+                showEditProfileModal();
+            }
+        }
+
+        // 프로필 수정 폼 제출
+        document.getElementById('editProfileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+
+            if (name.length < 2) {
+                showToast('이름은 2자 이상이어야 합니다.', 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users/me', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, phoneNumber: phone })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('프로필이 성공적으로 수정되었습니다.', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(result.message || '프로필 수정에 실패했습니다.', 'danger');
+                }
+            } catch (error) {
+                showToast('프로필 수정 중 오류가 발생했습니다.', 'danger');
+            }
+        });
+
+        // 비밀번호 변경 폼 제출
+        document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+            if (newPassword !== confirmNewPassword) {
+                showToast('새 비밀번호가 일치하지 않습니다.', 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/users/me/password', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword,
+                        confirmNewPassword: confirmNewPassword
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('비밀번호가 성공적으로 변경되었습니다.', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+                    document.getElementById('changePasswordForm').reset();
+                } else {
+                    showToast(result.message || '비밀번호 변경에 실패했습니다.', 'danger');
+                }
+            } catch (error) {
+                showToast('비밀번호 변경 중 오류가 발생했습니다.', 'danger');
+            }
+        });
+
+        // 계정 비활성화
+        async function deactivateAccount() {
+            try {
+                const response = await fetch('/api/users/me', { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('계정이 비활성화되었습니다.', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login?deactivated=true';
+                    }, 2000);
+                } else {
+                    showToast(result.message || '계정 비활성화에 실패했습니다.', 'danger');
+                }
+            } catch (error) {
+                showToast('처리 중 오류가 발생했습니다.', 'danger');
+            }
+        }
+
+        // 페이지 로드 시 애니메이션
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileCards = document.querySelectorAll('.profile-card, .profile-header');
+            profileCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 + (index * 150));
+            });
+        });
+    </script>
+</th:block>
 </html>

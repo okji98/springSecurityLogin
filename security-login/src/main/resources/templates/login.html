@@ -1,10 +1,503 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/base}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>로그인</title>
 </head>
-<body>
 
-</body>
+<th:block layout:fragment="styles">
+    <style>
+        .welcome-text {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-text h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .welcome-text p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: #667eea;
+        }
+
+        .form-floating {
+            position: relative;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .forgot-password:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .social-login-title {
+            text-align: center;
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .btn-social i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+
+        .register-prompt {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .register-prompt a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .register-prompt a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* 로그인 성공 애니메이션 */
+        .login-success {
+            animation: successPulse 0.6s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 에러 상태 스타일 */
+        .form-control.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+    </style>
+</th:block>
+
+<main layout:fragment="content">
+    <div class="main-container">
+        <div class="row w-100 justify-content-center">
+            <!-- 왼쪽: 웰컴 텍스트 (데스크톱에서만 표시) -->
+            <div class="col-lg-6 d-none d-lg-flex align-items-center">
+                <div class="welcome-text">
+                    <h1>
+                        <i class="fas fa-shield-alt me-3"></i>
+                        Security Login
+                    </h1>
+                    <p>안전하고 편리한 로그인 시스템으로<br>다양한 방법으로 로그인하세요</p>
+
+                    <div class="mt-5">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="feature-icon">
+                                    <i class="fas fa-lock fa-2x mb-3" style="color: rgba(255,255,255,0.8);"></i>
+                                    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">보안 인증</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="feature-icon">
+                                    <i class="fas fa-users fa-2x mb-3" style="color: rgba(255,255,255,0.8);"></i>
+                                    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">소셜 로그인</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="feature-icon">
+                                    <i class="fas fa-mobile-alt fa-2x mb-3" style="color: rgba(255,255,255,0.8);"></i>
+                                    <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">반응형 지원</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 로그인 폼 -->
+            <div class="col-lg-6 col-md-8 col-sm-10">
+                <div class="auth-card">
+                    <div class="text-center mb-4">
+                        <h2 class="auth-title">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            로그인
+                        </h2>
+                        <p class="auth-subtitle">계정에 로그인하여 서비스를 이용하세요</p>
+                    </div>
+
+                    <!-- 알림 메시지 -->
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span th:text="${successMessage}"></span>
+                    </div>
+
+                    <!-- 소셜 로그인 -->
+                    <div class="social-buttons">
+                        <h6 class="social-login-title">소셜 계정으로 로그인</h6>
+
+                        <a href="/oauth2/authorization/google" class="btn btn-social btn-google">
+                            <i class="fab fa-google"></i>
+                            Google로 로그인
+                        </a>
+
+                        <a href="/oauth2/authorization/kakao" class="btn btn-social btn-kakao">
+                            <i class="fas fa-comment"></i>
+                            카카오로 로그인
+                        </a>
+
+                        <a href="/oauth2/authorization/naver" class="btn btn-social btn-naver">
+                            <strong>N</strong>
+                            네이버로 로그인
+                        </a>
+                    </div>
+
+                    <!-- 구분선 -->
+                    <div class="divider">
+                        <span>또는 이메일로 로그인</span>
+                    </div>
+
+                    <!-- 로그인 폼 -->
+                    <form id="loginForm" th:action="@{/api/auth/login}" method="post">
+                        <div class="form-floating">
+                            <input type="email"
+                                   class="form-control"
+                                   id="email"
+                                   name="email"
+                                   placeholder="이메일을 입력하세요"
+                                   required>
+                            <label for="email">
+                                <i class="fas fa-envelope me-2"></i>이메일
+                            </label>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="form-floating">
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   placeholder="비밀번호를 입력하세요"
+                                   required>
+                            <label for="password">
+                                <i class="fas fa-lock me-2"></i>비밀번호
+                            </label>
+                            <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                            </button>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
+                        <div class="remember-forgot">
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="rememberMe"
+                                       name="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    로그인 상태 유지
+                                </label>
+                            </div>
+                            <a href="#" class="forgot-password" onclick="showForgotPasswordModal()">
+                                비밀번호를 잊으셨나요?
+                            </a>
+                        </div>
+
+                        <button type="submit" class="btn btn-gradient w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            로그인
+                        </button>
+                    </form>
+
+                    <!-- 회원가입 안내 -->
+                    <div class="register-prompt">
+                        <p>아직 계정이 없으신가요?
+                            <a th:href="@{/register}">회원가입</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 재설정 모달 -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key me-2"></i>
+                        비밀번호 재설정
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.</p>
+                    <form id="forgotPasswordForm">
+                        <div class="form-floating">
+                            <input type="email"
+                                   class="form-control"
+                                   id="resetEmail"
+                                   placeholder="이메일을 입력하세요"
+                                   required>
+                            <label for="resetEmail">이메일 주소</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="submit" form="forgotPasswordForm" class="btn btn-gradient">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        재설정 링크 보내기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block layout:fragment="scripts">
+    <script>
+        // 비밀번호 표시/숨김 토글
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // 비밀번호 재설정 모달 표시
+        function showForgotPasswordModal() {
+            const modal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+            modal.show();
+        }
+
+        // 로그인 폼 제출 처리
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const hideLoading = showLoading(submitBtn);
+
+            // 폼 데이터 수집
+            const formData = new FormData(this);
+            const loginData = {
+                email: formData.get('email'),
+                password: formData.get('password'),
+                rememberMe: formData.get('rememberMe') === 'on'
+            };
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 로그인 성공
+                    document.querySelector('.auth-card').classList.add('login-success');
+                    showToast('로그인 성공! 홈페이지로 이동합니다.', 'success');
+
+                    // 토큰 저장 (필요한 경우)
+                    if (result.data.accessToken) {
+                        localStorage.setItem('accessToken', result.data.accessToken);
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = '/home';
+                    }, 1500);
+
+                } else {
+                    // 로그인 실패
+                    showToast(result.message || '로그인에 실패했습니다.', 'danger');
+                    hideLoading();
+                }
+
+            } catch (error) {
+                console.error('로그인 오류:', error);
+                showToast('로그인 중 오류가 발생했습니다.', 'danger');
+                hideLoading();
+            }
+        });
+
+        // 비밀번호 재설정 폼 제출 처리
+        document.getElementById('forgotPasswordForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const hideLoading = showLoading(submitBtn);
+
+            const email = document.getElementById('resetEmail').value;
+
+            try {
+                const response = await fetch(`/api/auth/forgot-password?email=${encodeURIComponent(email)}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('비밀번호 재설정 이메일이 발송되었습니다.', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
+                    document.getElementById('resetEmail').value = '';
+                } else {
+                    showToast(result.message || '이메일 발송에 실패했습니다.', 'danger');
+                }
+
+            } catch (error) {
+                console.error('비밀번호 재설정 오류:', error);
+                showToast('처리 중 오류가 발생했습니다.', 'danger');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 실시간 폼 검증
+        document.getElementById('email').addEventListener('blur', function() {
+            validateEmail(this);
+        });
+
+        document.getElementById('password').addEventListener('blur', function() {
+            validatePassword(this);
+        });
+
+        function validateEmail(input) {
+            const email = input.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            clearValidation(input);
+
+            if (!email) {
+                showFieldError(input, '이메일을 입력해주세요.');
+                return false;
+            }
+
+            if (!emailRegex.test(email)) {
+                showFieldError(input, '올바른 이메일 형식이 아닙니다.');
+                return false;
+            }
+
+            showFieldSuccess(input);
+            return true;
+        }
+
+        function validatePassword(input) {
+            const password = input.value;
+
+            clearValidation(input);
+
+            if (!password) {
+                showFieldError(input, '비밀번호를 입력해주세요.');
+                return false;
+            }
+
+            if (password.length < 8) {
+                showFieldError(input, '비밀번호는 8자 이상이어야 합니다.');
+                return false;
+            }
+
+            showFieldSuccess(input);
+            return true;
+        }
+
+        function showFieldError(input, message) {
+            input.classList.add('is-invalid');
+            const feedback = input.nextElementSibling.nextElementSibling; // label 다음의 div
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.textContent = message;
+            }
+        }
+
+        function showFieldSuccess(input) {
+            input.classList.remove('is-invalid');
+            input.classList.add('is-valid');
+        }
+
+        function clearValidation(input) {
+            input.classList.remove('is-invalid', 'is-valid');
+        }
+
+        // 엔터 키로 로그인
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.activeElement.closest('#loginForm')) {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // 페이지 로드 시 이메일 입력란에 포커스
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('email').focus();
+            }, 500);
+        });
+    </script>
+</th:block>
 </html>
