@@ -17,15 +17,19 @@
 
 ### 📱 페이지 구성
 🏠 홈 페이지: 메인 랜딩 페이지
+<br/>
 <img src="images/home.jpg" alt="홈 페이지" width="600"/>
 
 🔑 로그인 페이지: 소셜/일반 로그인 선택
+<br/>
 <img src="images/login.jpg" alt="로그인 페이지" width="600"/>
 
 📝 회원가입 페이지: 새 계정 생성
+<br/>
 <img src="images/register.jpg" alt="회원가입 페이지" width="600"/>
 
 👤 프로필 페이지: 사용자 정보 관리
+<br/>
 <img src="images/profile.jpg" alt="프로필 페이지" width="600"/>
 
 <br/>
