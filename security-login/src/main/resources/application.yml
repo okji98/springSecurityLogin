@@ -5,8 +5,8 @@ spring:
   # 데이터베이스 설정
   datasource:
     url: jdbc:postgresql://localhost:5432/security_login_db
-    username: your_username
-    password: your_password
+    username: postgres
+    password: 1234
     driver-class-name: org.postgresql.Driver
 
   # JPA 설정
@@ -32,15 +32,15 @@ spring:
         registration:
           # Google OAuth2
           google:
-            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
-            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            client-id: ${GOOGLE_CLIENT_ID:1061249863480-2fv42qav9nq3rml9jauubumsgr806ul7.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
             scope: profile, email
             redirect-uri: http://localhost:8080/login/oauth2/code/google
 
           # Kakao OAuth2
           kakao:
-            client-id: ${KAKAO_CLIENT_ID:your-kakao-client-id}
-            client-secret: ${KAKAO_CLIENT_SECRET:your-kakao-client-secret}
+            client-id: ${KAKAO_CLIENT_ID:384a262ff861aace6befb7cdba52ba14}
+            client-secret:
             scope: profile_nickname, account_email
             client-name: Kakao
             authorization-grant-type: authorization_code
@@ -48,8 +48,8 @@ spring:
 
           # Naver OAuth2
           naver:
-            client-id: ${NAVER_CLIENT_ID:your-naver-client-id}
-            client-secret: ${NAVER_CLIENT_SECRET:your-naver-client-secret}
+            client-id: ${NAVER_CLIENT_ID:0x4_irmCrDnvfsXVMWjR}
+            client-secret: ${NAVER_CLIENT_SECRET:Zl0oXci_IU}
             scope: name, email
             client-name: Naver
             authorization-grant-type: authorization_code

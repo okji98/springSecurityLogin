@@ -4,9 +4,9 @@ import com.example.security_login.security.JwtAuthenticationFilter;
 import com.example.security_login.security.OAuth2SuccessHandler;
 import com.example.security_login.service.CustomUserDetailsService;
 import com.example.security_login.service.CustomOAuth2UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -24,13 +24,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
+
+    // @RequiredArgsConstructor 대신 직접 생성자 작성
+    public SecurityConfig(
+            CustomUserDetailsService userDetailsService,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            @Lazy OAuth2SuccessHandler oAuth2SuccessHandler,  // @Lazy 추가
+            @Lazy CustomOAuth2UserService customOAuth2UserService
+    ) {
+        this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oAuth2SuccessHandler = oAuth2SuccessHandler;
+        this.customOAuth2UserService = customOAuth2UserService;
+    }
 
     /**
      * SecurityFilterChain 설정

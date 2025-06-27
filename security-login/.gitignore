@@ -35,3 +35,14 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### api ###
+application.yml
+application-local.yml
+application-local.properties
+application-dev.yml
+application-prod.yml
+.env
+.env.local
+.env.development
+.env.production
